@@ -17,7 +17,7 @@ export default function GeometriesPage() {
 
     const geometry = new THREE.BufferGeometry();
 
-    const count = 50;
+    const count = 500;
 
     const positionsArray = new Float32Array(count * 3 * 3);
     // count(# of triangles) and each triangle has 3 vertices (* 3)
@@ -35,7 +35,7 @@ export default function GeometriesPage() {
     geometry.setAttribute("position", positionsAttribute);
 
     const material = new THREE.MeshBasicMaterial({
-      color: 0xff0000,
+      color: 0xff00ff,
       wireframe: true,
     });
     const mesh = new THREE.Mesh(geometry, material);
