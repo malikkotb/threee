@@ -13,7 +13,7 @@ export default function GeometriesPage() {
     const scene = new THREE.Scene();
 
     // Object
-    const geometry = new THREE.BoxGeometry(1, 1, 1, 2, 2, 2);
+    // const geometry = new THREE.BoxGeometry(1, 1, 1, 2, 2, 2);
     // parameters of BoxGeometry
     // width, height, depth, widthSegments, heightSegments, depthSegments
     // (also called subdivision in Blender -> having more triangles to have more details)
@@ -23,6 +23,46 @@ export default function GeometriesPage() {
     // this is useful for terrain generation, etc. not so useful for a normal cube.
 
     // things get harder when it comes to creating our own geometries
+    // we'll create a triangle and then create a bunch of triangles
+    // by using BufferGeometries
+
+    // How to store buffer geometry data? (The vertices)
+    // we can store a lot of information per vertex
+    // like position, uv, normal, etc.
+    // -> using Float32Array (can only store floats, and has fixed length)
+
+    // 9 floats (3 vertices), since we are creating a triangle
+    const positionsArray = new Float32Array([
+      0,
+      0,
+      0, // first vertex (x, y, z)
+      0,
+      1,
+      0, // second vertex (x, y, z)
+      1,
+      0,
+      0, // third vertex (x, y, z)
+    ]);
+
+    // we need to convert this to a Threejs buffer attribute
+    const positionsAttribute = new THREE.BufferAttribute(
+      positionsArray,
+      3
+    ); // 3 floats per vertex
+
+    // if we were using uv coordinates, we would use 2 floats per vertex
+    // const uvArray = new Float32Array([
+    //   0, 0, // first vertex (u, v)
+    //   0, 1, // second vertex (u, v)
+    //   1, 0, // third vertex (u, v)
+    // ]);
+    // const uvAttribute = new THREE.BufferAttribute(uvArray, 2); // 2 floats per vertex
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", positionsAttribute);
+    // NEED to set attribute to "position", this is the name of the value of the attribute we are sending
+    // that will be used inside the shaders.
+    
 
     const material = new THREE.MeshBasicMaterial({
       color: 0xff0000,
