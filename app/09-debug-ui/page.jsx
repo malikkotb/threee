@@ -2,50 +2,86 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import GUI from "lil-gui";
+import gsap from "gsap";
 
 export default function GeometriesPage() {
   const canvasRef = useRef(null);
+  const debugObject = {};
 
   useEffect(() => {
     if (!canvasRef.current) return;
+
+    // Debug UI
+    const gui = new GUI({ width: 300, title: "Debug UI" });
+    // most of the tweaks can be added using gui.add(the object, the property of that object)
+    // other parameters can be added using gui.add(the object, the property of that object, the min, the max, the step)
+    gui.close();
 
     // Scene
     const scene = new THREE.Scene();
 
     // Object
-    // const geometry = new THREE.BoxGeometry(1, 1, 1, 2, 2, 2);
-
-    const geometry = new THREE.BufferGeometry();
-
-    const count = 500;
-
-    const positionsArray = new Float32Array(count * 3 * 3);
-    // count(# of triangles) and each triangle has 3 vertices (* 3)
-    // and each vertex has 3 values (x, y, z) (* 3 again)
-
-    for (let i = 0; i < count * 3 * 3; i++) {
-      positionsArray[i] = Math.random() - 0.5; // -0.5 to 0.5
-    }
-
-    const positionsAttribute = new THREE.BufferAttribute(
-      positionsArray,
-      3
-    );
-
-    geometry.setAttribute("position", positionsAttribute);
-
-    // One interesting thing with BufferGeometry is that you can mutualize
-    // vertices using the index property. Consider a cube.
-    // Multiple faces can use some vertices like the ones in the corners.
-    // And if you look closely, every vertex can be used by various neighbor triangles.
-    // That will result in a smaller attribute array and performance improvement.
+    debugObject.color = "#35b673";
+    const geometry = new THREE.BoxGeometry(1, 1, 1, 2, 2, 2);
 
     const material = new THREE.MeshBasicMaterial({
-      color: 0xff00ff,
+      color: debugObject.color,
       wireframe: true,
     });
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
+
+    const cubeTweaks = gui.addFolder("Cube Tweales");
+    // then you can say cubeTweaks.add() instead of gui.add...
+
+    // range
+    // the object is mesh.position and the property is y
+    gui
+      .add(mesh.position, "y")
+      .min(-3)
+      .max(3)
+      .step(0.01)
+      .name("elevation");
+
+    // checkbox
+    gui.add(mesh, "visible");
+    gui.add(mesh.material, "wireframe");
+
+    // colors
+    gui.addColor(debugObject, "color").onChange(() => {
+      material.color.set(debugObject.color);
+    });
+
+    // function / button
+    debugObject.spin = () => {
+      gsap.to(mesh.rotation, {
+        y: mesh.rotation.y + Math.PI * 2,
+        duration: 1,
+      });
+    };
+    gui.add(debugObject, "spin");
+
+    // tweaking the geometry, (tweaking the geometry subdivision)
+    debugObject.subdivision = 2;
+    gui
+      .add(debugObject, "subdivision")
+      .min(1)
+      .max(20)
+      .step(1)
+      .onFinishChange(() => {
+        // before creating a new geometry -> dispose the old one first
+        mesh.geometry.dispose();
+        mesh.geometry = new THREE.BoxGeometry(
+          1,
+          1,
+          1,
+          debugObject.subdivision, // now we change the width, height and depth segments or subdivisions for every face
+          debugObject.subdivision,
+          debugObject.subdivision
+        );
+      })
+      .name("subdivision");
 
     // Sizes
     const sizes = {
@@ -88,7 +124,6 @@ export default function GeometriesPage() {
     window.addEventListener("resize", onResize);
 
     // Animate
-    const clock = new THREE.Clock();
     let animationFrameId;
 
     const tick = () => {

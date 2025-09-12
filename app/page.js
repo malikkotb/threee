@@ -12,6 +12,7 @@ export default function Home() {
           07-fullscreen-and-resizing
         </Link>
         <Link href='/08-geometries'>08-geometries</Link>
+        <Link href='/09-debug-ui'>09-debug-ui</Link>
       </div>
     </div>
   );
