@@ -6,17 +6,15 @@ import GUI from "lil-gui";
 import gsap from "gsap";
 
 /* Textures */
-const image = new Image();
 
-const texture = new THREE.Texture(image);
+const textureLoader = new THREE.TextureLoader();
+
+const texture = textureLoader.load("/textures/door/color.jpg");
+
+// Loadingmanager to mutualize events
+// useful if we want to know global loading progress or be informed when all the textures are loaded
+
 texture.colorSpace = THREE.SRGBColorSpace;
-
-image.addEventListener("load", () => {
-  texture.needsUpdate = true;
-});
-image.src = "/textures/door/color.jpg";
-
-// we need to use the texture in the material
 
 export default function GeometriesPage() {
   const canvasRef = useRef(null);
