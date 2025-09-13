@@ -13,6 +13,7 @@ export default function Home() {
         </Link>
         <Link href='/08-geometries'>08-geometries</Link>
         <Link href='/09-debug-ui'>09-debug-ui</Link>
+        <Link href='/10-textures'>10-textures</Link>
       </div>
     </div>
   );
