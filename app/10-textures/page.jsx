@@ -5,6 +5,19 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import GUI from "lil-gui";
 import gsap from "gsap";
 
+/* Textures */
+const image = new Image();
+
+const texture = new THREE.Texture(image);
+texture.colorSpace = THREE.SRGBColorSpace;
+
+image.addEventListener("load", () => {
+  texture.needsUpdate = true;
+});
+image.src = "/textures/door/color.jpg";
+
+// we need to use the texture in the material
+
 export default function GeometriesPage() {
   const canvasRef = useRef(null);
   const debugObject = {};
@@ -19,7 +32,7 @@ export default function GeometriesPage() {
   // Height (or displacement) -> heightmap
   // grayscale image, heightmap, can be used for a displacement map
   // move the vertices to create some relief
-  // if it's white the vertices will go up and if its black it will go down 
+  // if it's white the vertices will go up and if its black it will go down
   // and if it's a perfect gray between white and black the vertices won't move.
   // need enough subdivision though! -> to have enough vertices
 
@@ -30,7 +43,6 @@ export default function GeometriesPage() {
   // lure the light about face orientation
   // better performance than adding a height texture (heightmap) with a lot of subdivisions
 
-
   // Ambient occlusion
   // grayscale image
   // adds fake shadows in crevices
@@ -39,14 +51,21 @@ export default function GeometriesPage() {
 
   // Metalness
   // grayscale image
-  // white is metallic, black is non-metallic, mostly for reflection 
+  // white is metallic, black is non-metallic, mostly for reflection
 
   // Roughness
   // grayscale image
   // in duo with metalness
   // white is rough, black is smooth, mostly for dissipation of light
 
-  
+  // these textures (espeecially metalness and roughness) folliw the PBR (physically based rendering) principles
+  // many techniques that tend to follow real-life directions to get realistic results
+  // becoming the standard for realisitc renders
+  // many software, engines, and libraries are using it
+
+  // how to load textures?
+  // get url of the image
+
   useEffect(() => {
     if (!canvasRef.current) return;
 
@@ -62,14 +81,10 @@ export default function GeometriesPage() {
     const geometry = new THREE.BoxGeometry(1, 1, 1, 2, 2, 2);
 
     const material = new THREE.MeshBasicMaterial({
-      color: debugObject.color,
-      wireframe: true,
+      map: texture,
     });
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
-
-    const cubeTweaks = gui.addFolder("Cube Tweales");
-    // then you can say cubeTweaks.add() instead of gui.add...
 
     // range
     // the object is mesh.position and the property is y
@@ -79,45 +94,6 @@ export default function GeometriesPage() {
       .max(3)
       .step(0.01)
       .name("elevation");
-
-    // checkbox
-    gui.add(mesh, "visible");
-    gui.add(mesh.material, "wireframe");
-
-    // colors
-    gui.addColor(debugObject, "color").onChange(() => {
-      material.color.set(debugObject.color);
-    });
-
-    // function / button
-    debugObject.spin = () => {
-      gsap.to(mesh.rotation, {
-        y: mesh.rotation.y + Math.PI * 2,
-        duration: 1,
-      });
-    };
-    gui.add(debugObject, "spin");
-
-    // tweaking the geometry, (tweaking the geometry subdivision)
-    debugObject.subdivision = 2;
-    gui
-      .add(debugObject, "subdivision")
-      .min(1)
-      .max(20)
-      .step(1)
-      .onFinishChange(() => {
-        // before creating a new geometry -> dispose the old one first
-        mesh.geometry.dispose();
-        mesh.geometry = new THREE.BoxGeometry(
-          1,
-          1,
-          1,
-          debugObject.subdivision, // now we change the width, height and depth segments or subdivisions for every face
-          debugObject.subdivision,
-          debugObject.subdivision
-        );
-      })
-      .name("subdivision");
 
     // Sizes
     const sizes = {
