@@ -40,7 +40,7 @@ export default function GeometriesPage() {
     const textureLoader = new THREE.TextureLoader(loadingManager);
 
     const colorTexture = textureLoader.load(
-      "/textures/checkerboard-8x8.png"
+      "/textures/minecraft.png"
     );
     colorTexture.colorSpace = THREE.SRGBColorSpace;
     const alphaTexture = textureLoader.load(
@@ -86,6 +86,8 @@ export default function GeometriesPage() {
     // colorTexture.minFilter = THREE.LinearFilter;
 
     // magnification filter
+    colorTexture.generateMipmaps = false;
+    colorTexture.minFilter = THREE.NearestFilter;
     colorTexture.magFilter = THREE.NearestFilter;
 
     // Object
