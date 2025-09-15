@@ -14,10 +14,11 @@ export default function CubeInteraction() {
 
   // Handle scroll-based rotation
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    if (meshRef.current) {
-      // Rotate 2 full turns (4π radians) based on scroll progress
-      meshRef.current.rotation.y = latest * Math.PI * 2;
-      meshRef.current.rotation.z = latest * Math.PI * 2;
+    if (meshRef.current && debugObject) {
+      const rotationAmount = latest * Math.PI * debugObject.rotationSpeed;
+      if (debugObject.enableXRotation) meshRef.current.rotation.x = rotationAmount;
+      if (debugObject.enableYRotation) meshRef.current.rotation.y = rotationAmount;
+      if (debugObject.enableZRotation) meshRef.current.rotation.z = rotationAmount;
     }
   });
 
@@ -51,6 +52,12 @@ export default function CubeInteraction() {
 
     // Object
     debugObject.color = "#35b673";
+    debugObject.rotationSpeed = 2; // Default rotation multiplier
+    debugObject.enableXRotation = false;
+    debugObject.enableYRotation = true;
+    debugObject.enableZRotation = true;
+    debugObject.scale = 1.5;
+
     const geometry = new THREE.BoxGeometry(1.5, 1.5, 1.5, 2, 2, 2);
 
     // Create materials array for each face
@@ -63,14 +70,84 @@ export default function CubeInteraction() {
     meshRef.current = mesh;
     scene.add(mesh);
 
-    // range
-    // the object is mesh.position and the property is y
-    gui
+    // Debug UI folders
+    const positionFolder = gui.addFolder('Position');
+    const rotationFolder = gui.addFolder('Rotation');
+    const materialFolder = gui.addFolder('Material');
+    const scaleFolder = gui.addFolder('Scale');
+
+    // Position controls
+    positionFolder
+      .add(mesh.position, "x")
+      .min(-3)
+      .max(3)
+      .step(0.01)
+      .name("X Position");
+
+    positionFolder
       .add(mesh.position, "y")
       .min(-3)
       .max(3)
       .step(0.01)
-      .name("elevation");
+      .name("Y Position");
+
+    positionFolder
+      .add(mesh.position, "z")
+      .min(-3)
+      .max(3)
+      .step(0.01)
+      .name("Z Position");
+
+    // Rotation controls
+    rotationFolder
+      .add(debugObject, "rotationSpeed")
+      .min(0)
+      .max(5)
+      .step(0.1)
+      .name("Rotation Speed");
+
+    rotationFolder
+      .add(debugObject, "enableXRotation")
+      .name("Enable X Rotation");
+
+    rotationFolder
+      .add(debugObject, "enableYRotation")
+      .name("Enable Y Rotation");
+
+    rotationFolder
+      .add(debugObject, "enableZRotation")
+      .name("Enable Z Rotation");
+
+    // Material controls
+    materials.forEach((material, index) => {
+      materialFolder
+        .add(material, "transparent")
+        .name(`Face ${index + 1} Transparent`);
+      
+      materialFolder
+        .add(material, "opacity")
+        .min(0)
+        .max(1)
+        .step(0.01)
+        .name(`Face ${index + 1} Opacity`);
+    });
+
+    // Scale controls
+    const updateScale = () => {
+      mesh.scale.set(debugObject.scale, debugObject.scale, debugObject.scale);
+    };
+
+    scaleFolder
+      .add(debugObject, "scale")
+      .min(0.5)
+      .max(3)
+      .step(0.1)
+      .name("Uniform Scale")
+      .onChange(updateScale);
+
+    // Open position folder by default
+    positionFolder.open();
+      
 
     // Sizes
     const sizes = {
