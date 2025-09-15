@@ -40,7 +40,7 @@ export default function GeometriesPage() {
     const textureLoader = new THREE.TextureLoader(loadingManager);
 
     const colorTexture = textureLoader.load(
-      "/textures/door/color.jpg"
+      "/textures/checkerboard-8x8.png"
     );
     colorTexture.colorSpace = THREE.SRGBColorSpace;
     const alphaTexture = textureLoader.load(
@@ -55,12 +55,38 @@ export default function GeometriesPage() {
 
     // Transforming the texture
     // repeat the texture by using repeat property (Vector2 with x and y properties)
-    colorTexture.repeat.x = 2;
-    colorTexture.repeat.y = 3;
-    // by default the texture doesnt reapeat and the last pixel gets stretched
-    // we can change that with:
-    colorTexture.wrapS = THREE.RepeatWrapping
-    colorTexture.wrapT = THREE.RepeatWrapping
+    // colorTexture.repeat.x = 2;
+    // colorTexture.repeat.y = 3;
+    // colorTexture.wrapS = THREE.RepeatWrapping;
+    // colorTexture.wrapT = THREE.RepeatWrapping;
+
+    // offset
+    // colorTexture.offset.x = 0.5;
+    // colorTexture.offset.y = 0.5;
+
+    // rotation (this will be in 2d space, because the texture is 2d)
+    // colorTexture.rotation = Math.PI / 4;
+
+    // Filtering and mipmapping
+    /*
+      Mipmapping (or "mip mapping" with a space) is a technique that consists of creating 
+      half a smaller version of a texture again and again until you get a 1x1 texture. 
+      All those texture variations are sent to the GPU, 
+      and the GPU will choose the most appropriate version of the texture.
+
+      Three.js and the GPU already handle all of this,
+      and you can just set what filter algorithm to use. 
+      There are two types of filter algorithms: the minification filter and the magnification filter.
+    */
+
+    
+
+    // Minification filter
+    // if you are not happy with how blurry a result is, you can test other minification filters
+    // colorTexture.minFilter = THREE.LinearFilter;
+
+    // magnification filter
+    colorTexture.magFilter = THREE.NearestFilter;
 
     // Object
     debugObject.color = "#35b673";
@@ -71,6 +97,9 @@ export default function GeometriesPage() {
     });
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
+
+    // magnification filter
+    colorTexture.magFilter = THREE.NearestFilter;
 
     // range
     // the object is mesh.position and the property is y
