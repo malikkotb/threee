@@ -79,8 +79,6 @@ export default function GeometriesPage() {
       There are two types of filter algorithms: the minification filter and the magnification filter.
     */
 
-    
-
     // Minification filter
     // if you are not happy with how blurry a result is, you can test other minification filters
     // colorTexture.minFilter = THREE.LinearFilter;
@@ -89,6 +87,35 @@ export default function GeometriesPage() {
     colorTexture.generateMipmaps = false;
     colorTexture.minFilter = THREE.NearestFilter;
     colorTexture.magFilter = THREE.NearestFilter;
+
+    // texture format and optimization
+    // users will have to download the textures
+    // -> choose the right type of file
+    // .jpg -> lossy compression but usually lighter
+    // .png -> lossless compression but usually heavier
+    // you can use compression websites and softwares like TinyPNG
+
+    // The Size
+    // each pixel of your texture will have to be stored on the GPU regardless of the image's weight (file size)
+    // BUT the GPU has storage limitations
+    // its even worse because mipmapping increases the number of pixels to store
+    // try to reduce the size of your images as much as possible!
+
+    // the mipmapping will produce a half smaller version of the texture
+    // repeatedly until 1x1
+    // because of that, the texture dimensions (width and height) must be a power of 2
+    // 512x512, 1024x1024, 512x2048, etc.
+
+    // The Data
+    // textures support transparency, BUT we cant have transparency in .jpg
+    // if we want to have only one texture that combines color and alpha, -> use .png
+
+    // if we are using a normal texture we want to have the exact values which is why we shouldn't apply
+    // lossy compression and we should use .png
+
+    
+
+
 
     // Object
     debugObject.color = "#35b673";
