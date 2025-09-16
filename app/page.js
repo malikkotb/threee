@@ -35,6 +35,7 @@ export default function Home() {
           <Link href='/08-geometries'>08-geometries</Link>
           <Link href='/09-debug-ui'>09-debug-ui</Link>
           <Link href='/10-textures'>10-textures</Link>
+          <Link href='/11-materials'>11-materials</Link>
         </div>
       </div>
     </main>
