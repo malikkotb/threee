@@ -155,8 +155,8 @@ export default function MaterialsPage() {
     // supports lights but with a more realisitc algorithm and better parametrers like roughness, metalness
     const material = new THREE.MeshStandardMaterial();
 
-    material.roughness = 0.7;
-    material.metalness = 0.2;
+    material.metalness = 1;
+    material.roughness = 0;
 
     gui
       .add(material, "metalness")
@@ -205,6 +205,7 @@ export default function MaterialsPage() {
     // its used to add reflection but also lighting to your objects, in addition
     // to the lighting you added in the scene
     // import using HDRLoader
+    // compatible with MeshStandardMaterial, MeshLambertMaterial, MeshPhongMaterial
     const hdrLoader = new HDRLoader();
     hdrLoader.load(
       "/textures/environmentMap/2k.hdr",
