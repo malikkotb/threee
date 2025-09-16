@@ -155,8 +155,19 @@ export default function MaterialsPage() {
     // supports lights but with a more realisitc algorithm and better parametrers like roughness, metalness
     const material = new THREE.MeshStandardMaterial();
 
-    material.metalness = 1;
-    material.roughness = 0;
+    material.metalness = 0.7;
+    material.roughness = 0.2;
+
+    material.map = doorColorTexture;
+    material.aoMap = doorAmbientOcclusionTexture; // will create shade where its dark
+
+    material.displacementMap = doorHeightTexture; // will move the vertices to create true relief
+    // when its bright (in the texture) the vertices will be moved up
+    // when its dark the vertices will be moved down
+    // need to add more subdivions to properly see the effect
+
+    
+
 
     gui
       .add(material, "metalness")
@@ -173,7 +184,7 @@ export default function MaterialsPage() {
 
     const sphere = new THREE.Mesh(
       // new TeapotGeometry(0.5, 0.2),
-      new THREE.SphereGeometry(0.5, 16, 16),
+      new THREE.SphereGeometry(0.5, 64, 64),
       material
     );
     sphere.position.x = -1.5;
@@ -194,11 +205,11 @@ export default function MaterialsPage() {
     // Ambient light is a light that illuminates all objects in the scene equally
     // Directional light is a light that illuminates all objects in the scene from a specific direction
     // Point light is a light that illuminates all objects in the scene from a specific point
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-    scene.add(ambientLight);
-    const pointLight = new THREE.PointLight(0xffffff, 20);
-    pointLight.position.set(2, 3, 4);
-    scene.add(pointLight);
+    // const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+    // scene.add(ambientLight);
+    // const pointLight = new THREE.PointLight(0xffffff, 20);
+    // pointLight.position.set(2, 3, 4);
+    // scene.add(pointLight);
 
     /* Environment map */
     // like an image of whats surrounding the scene
