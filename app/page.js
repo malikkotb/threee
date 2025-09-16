@@ -4,6 +4,7 @@ import CubeInteraction from "./10-textures/cubeInteraction";
 import Lenis from "lenis";
 import { useEffect } from "react";
 import DisplacementMap from "./11-materials/displacementMap";
+import BulgeDistortionAnimation from "./11-materials/BulgeDistortionAnimation";
 
 export default function Home() {
   useEffect(() => {
@@ -22,6 +23,7 @@ export default function Home() {
   return (
     <main>
       {/* <CubeInteraction /> */}
+      <BulgeDistortionAnimation />
       <DisplacementMap />
       <div className='flex flex-col items-center justify-center h-screen'>
         <h1 className='text-4xl font-bold'>Three.js</h1>
