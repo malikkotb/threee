@@ -113,8 +113,6 @@ export default function GeometriesPage() {
     // if we are using a normal texture we want to have the exact values which is why we shouldn't apply
     // lossy compression and we should use .png
 
-    
-
 
 
     // Object

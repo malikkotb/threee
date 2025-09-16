@@ -4,7 +4,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import GUI from "lil-gui";
 import gsap from "gsap";
-import { TeapotGeometry } from "three/addons/geometries/TeapotGeometry.js";
+import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader";
+console.log(HDRLoader);
 
 export default function MaterialsPage() {
   const canvasRef = useRef(null);
@@ -14,7 +15,7 @@ export default function MaterialsPage() {
     if (!canvasRef.current) return;
 
     // Debug UI
-    const gui = new GUI({ width: 300, title: "Debug UI" });
+    const gui = new GUI({ width: 260, title: "Debug UI" });
 
     // Scene
     const scene = new THREE.Scene();
@@ -47,11 +48,15 @@ export default function MaterialsPage() {
     );
 
     const matcapTexture = textureLoader.load(
-      "/textures/matcaps/1.png"
+      "/textures/matcaps/8.png"
     );
 
     const gradientTexture = textureLoader.load(
-      "/textures/gradients/3.jpg"
+      "/textures/gradients/5.jpg" // will render 5 pixels when using NearestFilter and MeshToonMaterial
+    );
+
+    const environmentMapTexture = textureLoader.load(
+      "/textures/environmentMap/2k.hdr"
     );
 
     // Change: Textures used as "map" and "matcap" are supposed to be encoded in sRGB color space
@@ -93,15 +98,78 @@ export default function MaterialsPage() {
     // material.side = THREE.DoubleSide;
 
     /* MeshNormalMaterial - can be useful to debug the normals */
-    // also just looks great on its own 
+    // "normals" are information encoded in each vertex that contains the direction of the outisde of the face
+    // also just looks great on its own
     // const material = new THREE.MeshNormalMaterial();
     // material.flatShading = true;
 
+    /* MeshMatcapMaterial */
+    // looks great while remaining very performant
+    // needs a reference texture that looks like a sphere
+    // idea is, that the shader of MeshMatcapMaterial is going to use that texture and
+    // according to the face it's trying to draw, it will pick the color on the material at the same position
+    // meshes appear illuminated, but its an illusion created by the texture
+    // the problem is that the result is the same regardless of the camera orientation and we cant update the lights
+    // const material = new THREE.MeshMatcapMaterial({
+    //   matcap: matcapTexture,
+    // });
 
-    
+    // other MATCAPS: https://github.com/nidorx/matcaps?tab=readme-ov-file
+    // or create them using blender
+    // or using https://www.kchapelier.com/matcap-studio/
 
+    /* MeshDepthMaterial */
+    // renders the depth of the geometry
+    // the depth is the distance from the camera to the geometry
+    // const material = new THREE.MeshDepthMaterial();
 
-    // "normals" are information encoded in each vertex that contains the direction of the outisde of the face
+    /* MeshLambertMaterial */
+    // the most performant material that uses lights
+    // but parameters aren't convenient
+    // const material = new THREE.MeshLambertMaterial({
+    //   color: 0xff0000,
+    //   emissive: 0x0000ff,
+    //   emissiveIntensity: 3,
+    // });
+
+    /* MeshPhongMaterial */
+    // less performant (but doesn't matter with so few objects)
+    // more paramters
+    // const material = new THREE.MeshPhongMaterial({
+    //   shininess: 100,
+    //   specular: new THREE.Color(0x1188ff),
+    // });
+
+    /* MeshToonMaterial */
+    // gives cell shading effect (cartoonish style)
+    // const material = new THREE.MeshToonMaterial();
+    // // NearestFilter: minecraft style, when we want big pixels
+    // gradientTexture.minFilter = THREE.NearestFilter;
+    // gradientTexture.magFilter = THREE.NearestFilter;
+    // // deactivating mipmapping
+    // gradientTexture.generateMipmaps = false;
+    // material.gradientMap = gradientTexture;
+
+    /* MeshStandardMaterial */
+    // uses physically based rendering (PBR)
+    // supports lights but with a more realisitc algorithm and better parametrers like roughness, metalness
+    const material = new THREE.MeshStandardMaterial();
+
+    material.roughness = 0.7;
+    material.metalness = 0.2;
+
+    gui
+      .add(material, "metalness")
+      .min(0)
+      .max(1)
+      .step(0.0001)
+      .name("Metalness");
+    gui
+      .add(material, "roughness")
+      .min(0)
+      .max(1)
+      .step(0.0001)
+      .name("Roughness");
 
     const sphere = new THREE.Mesh(
       // new TeapotGeometry(0.5, 0.2),
@@ -121,6 +189,34 @@ export default function MaterialsPage() {
     torus.position.x = 1.5;
 
     scene.add(sphere, plane, torus);
+
+    /* Lights */
+    // Ambient light is a light that illuminates all objects in the scene equally
+    // Directional light is a light that illuminates all objects in the scene from a specific direction
+    // Point light is a light that illuminates all objects in the scene from a specific point
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+    scene.add(ambientLight);
+    const pointLight = new THREE.PointLight(0xffffff, 20);
+    pointLight.position.set(2, 3, 4);
+    scene.add(pointLight);
+
+    /* Environment map */
+    // like an image of whats surrounding the scene
+    // its used to add reflection but also lighting to your objects, in addition
+    // to the lighting you added in the scene
+    // import using HDRLoader
+    const hdrLoader = new HDRLoader();
+    hdrLoader.load(
+      "/textures/environmentMap/2k.hdr",
+      (environmentMap) => {
+        environmentMap.mapping =
+          THREE.EquirectangularReflectionMapping;
+        scene.background = environmentMap;
+
+        // to make it contribute to the lighting of the objects
+        scene.environment = environmentMap;
+      }
+    );
 
     // Camera
     const camera = new THREE.PerspectiveCamera(
