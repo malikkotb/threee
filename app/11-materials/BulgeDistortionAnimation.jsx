@@ -18,13 +18,7 @@ export default function BulgeDistortionAnimation() {
       0.1,
       100
     );
-    camera.position.z = 3;
-
-    // Add lights
-    const pointLight = new THREE.PointLight(0xffffff, 2.5);
-    pointLight.position.set(2, 2, 1);
-    scene.add(pointLight);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+    camera.position.z = 2;
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -35,108 +29,71 @@ export default function BulgeDistortionAnimation() {
     // Mouse tracking
     const mouse = { x: 0, y: 0 };
     const onMouseMove = (e) => {
-      mouse.x = e.clientX / window.innerWidth;
-      mouse.y = e.clientY / window.innerHeight;
+      const rect = renderer.domElement.getBoundingClientRect();
+      
+      // Calculate normalized mouse position (0 to 1)
+      mouse.x = (e.clientX - rect.left) / rect.width;
+      mouse.y = 1 - (e.clientY - rect.top) / rect.height; // Flip Y for UV space
+      
+      console.log('Mouse position:', { x: mouse.x.toFixed(3), y: mouse.y.toFixed(3) });
     };
     window.addEventListener("mousemove", onMouseMove);
 
     // Material with displacement map and color texture
-    const textureLoader = new THREE.TextureLoader();
-    const displacementTexture = textureLoader.load(
-      "/textures/door/height.jpg"
-    );
-    const doorTexture = textureLoader.load(
-      "/textures/blurGradient.png"
-    );
-    doorTexture.colorSpace = THREE.SRGBColorSpace;
+      const textureLoader = new THREE.TextureLoader();
+      // const texture = textureLoader.load("/textures/blurGradient.png");
+      const texture = textureLoader.load("/textures/ball.png");
 
-    const material = new THREE.ShaderMaterial({
-      side: THREE.DoubleSide,
-      uniforms: {
-        uDisplacement: { value: displacementTexture },
-        uTexture: { value: doorTexture },
-        // uColor: { value: new THREE.Color(0xce21ce) }, // to use a color instead of texture
-        uMouse: { value: new THREE.Vector2(0, 0) },
-        uStrength: { value: 1 },
-      },
+      const material = new THREE.ShaderMaterial({
+        side: THREE.DoubleSide,
+        uniforms: {
+          uTexture: { value: texture },
+          uMouse: { value: new THREE.Vector2(0.5, 0.5) },
+          uStrength: { value: 0.45 },
+          uRadius: { value: 0.25 }, // Radius of influence for the bulge
+        },
       vertexShader: `
-        uniform sampler2D uDisplacement;
         uniform vec2 uMouse;
         uniform float uStrength;
+        uniform float uRadius;
         varying vec2 vUv;
-        varying vec3 vNormal;
-        varying vec3 vPosition;
 
         void main() {
           vUv = uv;
           vec3 pos = position;
-          float disp = texture2D(uDisplacement, uv).r;
+          
+          // Calculate distance from mouse in UV space
           float dist = distance(uv, uMouse);
-          pos.z += disp * uStrength * (1.0 - dist);
           
-          // Calculate normals
-          vec3 tangent = normalize(vec3(1.0, 0.0, 
-            texture2D(uDisplacement, vec2(uv.x + 0.01, uv.y)).r * uStrength -
-            texture2D(uDisplacement, vec2(uv.x - 0.01, uv.y)).r * uStrength
-          ));
-          vec3 bitangent = normalize(vec3(0.0, 1.0,
-            texture2D(uDisplacement, vec2(uv.x, uv.y + 0.01)).r * uStrength -
-            texture2D(uDisplacement, vec2(uv.x, uv.y - 0.01)).r * uStrength
-          ));
-          vNormal = normalize(cross(tangent, bitangent));
+          // Gaussian-like falloff for smoother bulge
+          float influence = exp(-dist * dist / (uRadius * uRadius));
           
-          vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
-          vPosition = modelPosition.xyz;
-          gl_Position = projectionMatrix * viewMatrix * modelPosition;
+          // Create smooth bulge
+          pos.z += influence * uStrength;
+          
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
         }
       `,
       fragmentShader: `
         uniform sampler2D uTexture;
         varying vec2 vUv;
-        varying vec3 vNormal;
-        varying vec3 vPosition;
 
         void main() {
-          vec3 textureColor = texture2D(uTexture, vUv).rgb;
-          vec3 lightPos = vec3(2.0, 2.0, 1.0);
-          vec3 lightDir = normalize(lightPos - vPosition);
-          
-          // Ambient
-          float ambientStrength = 0.3;
-          vec3 ambient = ambientStrength * textureColor;
-          
-          // Diffuse
-          float diff = max(dot(vNormal, lightDir), 0.0);
-          vec3 diffuse = diff * textureColor * 1.5;
-          
-          // Specular
-          float specularStrength = 0.8;
-          vec3 viewDir = normalize(cameraPosition - vPosition);
-          vec3 reflectDir = reflect(-lightDir, vNormal);
-          float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
-          vec3 specular = specularStrength * spec * vec3(1.0);
-          
-          // Final color
-          vec3 result = ambient + diffuse + specular;
-          gl_FragColor = vec4(result, 1.0);
+          gl_FragColor = texture2D(uTexture, vUv);
         }
       `,
     });
 
     // Plane geometry
-    const geometry = new THREE.PlaneGeometry(2, 2, 128, 128);
+    // more subdivions for a smoother effect (256)
+    const geometry = new THREE.PlaneGeometry(0.8, 1, 256, 256);
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
-
-    // OrbitControls
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
 
     // Animation loop
     const animate = () => {
       requestAnimationFrame(animate);
-      material.uniforms.uMouse.value.set(mouse.x, 1 - mouse.y); // flip Y for UV
-      controls.update();
+      material.uniforms.uMouse.value.set(mouse.x, mouse.y);
       renderer.render(scene, camera);
     };
     animate();
@@ -145,24 +102,31 @@ export default function BulgeDistortionAnimation() {
     return () => {
       window.removeEventListener("mousemove", onMouseMove);
       mountRef.current.removeChild(renderer.domElement);
-      controls.dispose();
-      geometry.dispose();
-      material.dispose();
-      displacementTexture.dispose();
-      doorTexture.dispose();
+        geometry.dispose();
+        material.dispose();
+        texture.dispose();
     };
   }, []);
 
   return (
-    <div
-      ref={mountRef}
-      style={{
-        width: "100%",
-        height: "100vh",
-        position: "fixed",
-        top: 0,
-        left: 0,
-      }}
-    />
+    <div style={{
+      width: "100%",
+      height: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      position: "fixed",
+      top: 0,
+      left: 0,
+    }}>
+      <div
+        ref={mountRef}
+        style={{
+          width: "75vh",
+          height: "75vh",
+          border: "1px solid red",
+        }}
+      />
+    </div>
   );
 }
