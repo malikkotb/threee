@@ -40,6 +40,7 @@ export default function Home() {
           <Link href='/09-debug-ui'>09-debug-ui</Link>
           <Link href='/10-textures'>10-textures</Link>
           <Link href='/11-materials'>11-materials</Link>
+          <Link href='/12-3d-text'>12-3d-text</Link>
         </div>
       </div>
     </main>
