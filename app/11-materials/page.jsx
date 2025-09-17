@@ -47,6 +47,10 @@ export default function MaterialsPage() {
       "/textures/door/metalness.jpg"
     );
 
+    const doorAlphaTexture = textureLoader.load(
+      "/textures/door/alpha.jpg"
+    );
+
     const matcapTexture = textureLoader.load(
       "/textures/matcaps/8.png"
     );
@@ -151,36 +155,121 @@ export default function MaterialsPage() {
     // material.gradientMap = gradientTexture;
 
     /* MeshStandardMaterial */
+    // // uses physically based rendering (PBR)
+    // // supports lights but with a more realisitc algorithm and better parametrers like roughness, metalness
+    // const material = new THREE.MeshStandardMaterial();
+
+    // material.metalness = 1;
+    // material.roughness = 1;
+
+    // material.map = doorColorTexture;
+    // material.aoMap = doorAmbientOcclusionTexture; // will create shade where its dark
+
+    // material.displacementMap = doorHeightTexture; // will move the vertices to create true relief
+    // // when its bright (in the texture) the vertices will be moved up
+    // // when its dark the vertices will be moved down
+    // // need to add more subdivions to properly see the effect
+
+    // material.displacementScale = 0.1; // Starting with a smaller value
+
+    // // instead of specifying uniform metalness and roughness for the whole geometry,
+    // // we can use metalnessMap and roughnessMap
+    // // the unfirom metalnes and roughness attributes will be multiplied
+    // // so set them to 1, when using metalnessMap and roughnessMap
+
+    // material.metalnessMap = doorMetalnessTexture;
+    // material.roughnessMap = doorRoughnessTexture;
+
+    // // the normalMap will fake the normal orientation to add details to the surface
+    // // regardless of the subdivision
+    // material.normalMap = doorNormalTexture;
+    // // with normal maps you can have not a lot of vertices and yet still get some crazy
+    // // details that react to light ( EVEN without displacementMap)
+    // // you can change the normal intensity with the normalScale property (vector2)
+    // material.normalScale.set(0.5, 0.5);
+
+    // material.transparent = true; // needs to be true to make the alphaMap work
+    // material.alphaMap = doorAlphaTexture;
+
+    /* MeshPhysicalMaterial */
+    // same as MeshStandardMaterial but with additional effects (it extends the MeshStandardMaterial class)
     // uses physically based rendering (PBR)
     // supports lights but with a more realisitc algorithm and better parametrers like roughness, metalness
-    const material = new THREE.MeshStandardMaterial();
+    const material = new THREE.MeshPhysicalMaterial();
 
-    material.metalness = 0.7;
-    material.roughness = 0.2;
-
+    material.metalness = 1;
+    material.roughness = 1;
     material.map = doorColorTexture;
     material.aoMap = doorAmbientOcclusionTexture; // will create shade where its dark
-
     material.displacementMap = doorHeightTexture; // will move the vertices to create true relief
-    // when its bright (in the texture) the vertices will be moved up
-    // when its dark the vertices will be moved down
-    // need to add more subdivions to properly see the effect
+    material.displacementScale = 0.1; // Starting with a smaller value
+    material.metalnessMap = doorMetalnessTexture;
+    material.roughnessMap = doorRoughnessTexture;
+    material.normalMap = doorNormalTexture;
+    material.normalScale.set(0.5, 0.5);
+    material.transparent = true; // needs to be true to make the alphaMap work
+    material.alphaMap = doorAlphaTexture;
 
-    
+    gui.add(material, "displacementScale").min(0).max(1).step(0.0001);
+    gui.add(material, "metalness").min(0).max(1).step(0.0001);
+    gui.add(material, "roughness").min(0).max(1).step(0.0001);
 
+    // Clearcoat
+    // simluates a thin layer of varnish on top of the actual material
+    // has its own reflective properties while we can still see the default material behind it
+    // performance intensive
+    // but can get give you crazy realistic results
+    // material.clearcoat = 1;
+    // material.clearcoatRoughness = 0;
 
-    gui
-      .add(material, "metalness")
-      .min(0)
-      .max(1)
-      .step(0.0001)
-      .name("Metalness");
-    gui
-      .add(material, "roughness")
-      .min(0)
-      .max(1)
-      .step(0.0001)
-      .name("Roughness");
+    // gui.add(material, "clearcoat").min(0).max(1).step(0.0001);
+    // gui.add(material, "clearcoatRoughness").min(0).max(1).step(0.0001);
+
+    // Sheen
+    // highlights the material when seen from a narrow angle
+    // usally on fluffy material like fabric
+    // material.sheen = 1;
+    // material.sheenRoughness = 0.25;
+    // material.sheenColor.set(1, 1, 1);
+    // gui.add(material, "sheen").min(0).max(1).step(0.0001);
+    // gui.add(material, "sheenRoughness").min(0).max(1).step(0.0001);
+    // gui.addColor(material, "sheenColor");
+
+    // Iridescence
+    // creates color artifacts like a fuel puddle, soap bubbles, or even CD LaserDiscs
+    // material.iridescence = 1;
+    // material.iridescenceIOR = 1;
+    // material.iridescenceThicknessRange = [100, 800];
+    // gui.add(material, "iridescence").min(0).max(1).step(0.0001);
+    // gui.add(material, "iridescenceIOR").min(0).max(2.33).step(0.0001);
+    // gui
+    //   .add(material.iridescenceThicknessRange, "0")
+    //   .min(1)
+    //   .max(1000)
+    //   .step(1);
+    // gui
+    //   .add(material.iridescenceThicknessRange, "1")
+    //   .min(1)
+    //   .max(1000)
+    //   .step(1);
+
+    // Transmission
+    // enable light to go through the material
+    // more than just transparency with opacity because the image behind the object gets deformed
+    material.transmission = 1;
+    material.ior = 1.5;
+    material.thickness = 0.5;
+    gui.add(material, "transmission").min(0).max(1).step(0.0001);
+    gui.add(material, "ior").min(0).max(10).step(0.0001);
+    gui.add(material, "thickness").min(0).max(1).step(0.0001);
+    // => the objects feel trnaslucent (kind of like gummy bears)
+    // ior = index of refraction
+    // and depends on the type of materual you want to simulate
+    // Diamond: 2.417
+    // Water: 1.333
+    // Air: 1.000293
+    // if we only use it with roughness, it will look like a glass
+
 
     const sphere = new THREE.Mesh(
       // new TeapotGeometry(0.5, 0.2),
@@ -190,7 +279,7 @@ export default function MaterialsPage() {
     sphere.position.x = -1.5;
 
     const plane = new THREE.Mesh(
-      new THREE.PlaneGeometry(1, 1),
+      new THREE.PlaneGeometry(1, 1, 128, 128), // Added more segments for displacement
       material
     );
     const torus = new THREE.Mesh(
