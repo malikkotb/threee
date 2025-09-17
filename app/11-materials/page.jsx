@@ -197,22 +197,22 @@ export default function MaterialsPage() {
     // supports lights but with a more realisitc algorithm and better parametrers like roughness, metalness
     const material = new THREE.MeshPhysicalMaterial();
 
-    material.metalness = 1;
-    material.roughness = 1;
-    material.map = doorColorTexture;
-    material.aoMap = doorAmbientOcclusionTexture; // will create shade where its dark
-    material.displacementMap = doorHeightTexture; // will move the vertices to create true relief
-    material.displacementScale = 0.1; // Starting with a smaller value
-    material.metalnessMap = doorMetalnessTexture;
-    material.roughnessMap = doorRoughnessTexture;
-    material.normalMap = doorNormalTexture;
-    material.normalScale.set(0.5, 0.5);
-    material.transparent = true; // needs to be true to make the alphaMap work
-    material.alphaMap = doorAlphaTexture;
+    material.metalness = 0;
+    material.roughness = 0;
+    // material.map = doorColorTexture;
+    // material.aoMap = doorAmbientOcclusionTexture; // will create shade where its dark
+    // material.displacementMap = doorHeightTexture; // will move the vertices to create true relief
+    // material.displacementScale = 0.1; // Starting with a smaller value
+    // material.metalnessMap = doorMetalnessTexture;
+    // material.roughnessMap = doorRoughnessTexture;
+    // material.normalMap = doorNormalTexture;
+    // material.normalScale.set(0.5, 0.5);
+    // material.transparent = true; // needs to be true to make the alphaMap work
+    // material.alphaMap = doorAlphaTexture;
 
-    gui.add(material, "displacementScale").min(0).max(1).step(0.0001);
-    gui.add(material, "metalness").min(0).max(1).step(0.0001);
-    gui.add(material, "roughness").min(0).max(1).step(0.0001);
+    // gui.add(material, "displacementScale").min(0).max(1).step(0.0001);
+    // gui.add(material, "metalness").min(0).max(1).step(0.0001);
+    gui.add(material, "roughness").min(0).max(0.6).step(0.0001);
 
     // Clearcoat
     // simluates a thin layer of varnish on top of the actual material
