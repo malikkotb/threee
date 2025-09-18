@@ -6,6 +6,7 @@ import GUI from "lil-gui";
 import gsap from "gsap";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
+import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader";
 export default function ThreeDTextPage() {
   const canvasRef = useRef(null);
   const debugObject = {};
@@ -18,6 +19,41 @@ export default function ThreeDTextPage() {
 
     // Scene
     const scene = new THREE.Scene();
+
+    // Environment map
+    const hdrLoader = new HDRLoader();
+    hdrLoader.load(
+      "/textures/environmentMap/paris.hdr",
+      (environmentMap) => {
+        environmentMap.mapping =
+          THREE.EquirectangularReflectionMapping;
+        scene.environment = environmentMap;
+        scene.background = environmentMap;
+
+        // Add environment map controls to debug UI
+        const envFolder = gui.addFolder("Environment");
+
+        // Control for environment map intensity
+        envFolder
+          .add(renderer, "toneMappingExposure")
+          .min(0)
+          .max(5)
+          .step(0.1)
+          .name("Env Intensity");
+
+        // Toggle environment map as background
+        const envConfig = {
+          useAsBackground: true,
+        };
+
+        envFolder
+          .add(envConfig, "useAsBackground")
+          .name("Show as Background")
+          .onChange((value) => {
+            scene.background = value ? environmentMap : null;
+          });
+      }
+    );
 
     // Axes helper
     const axesHelper = new THREE.AxesHelper();
@@ -33,6 +69,10 @@ export default function ThreeDTextPage() {
      * Textures
      */
     const textureLoader = new THREE.TextureLoader();
+    const matcapTexture = textureLoader.load(
+      "/textures/matcaps/9.png"
+    );
+    matcapTexture.colorSpace = THREE.SRGBColorSpace;
 
     // Recreating the ilithya website
     // and create a big 3d text in the middle of the scene with objects floating around
@@ -80,7 +120,8 @@ export default function ThreeDTextPage() {
     /* Fonts */
     const fontLoader = new FontLoader();
     fontLoader.load(
-      "/fonts/helvetiker_regular.typeface.json",
+      //   "/fonts/helvetiker_regular.typeface.json",
+      "/fonts/pp-neue-montreal-medium_medium_regular.json",
       (font) => {
         // console.log(font);
         // create geometry
@@ -96,27 +137,172 @@ export default function ThreeDTextPage() {
           bevelSegments: 4,
         });
         // create material
-        const textMaterial = new THREE.MeshNormalMaterial({
-          wireframe: true,
+        const textMaterial = new THREE.MeshMatcapMaterial({
+          matcap: matcapTexture,
         });
-        // textGeometry.computeBoundingBox();
-        // // center geometry on all axes
-        // textGeometry.translate(
-        //     // also substract bevelSize for each respective axis
-        //   -(textGeometry.boundingBox.max.x - 0.02) * 0.5,
-        //   -(textGeometry.boundingBox.max.y - 0.02) * 0.5,
-        //   -(textGeometry.boundingBox.max.z - 0.03) * 0.5
-        // );
 
+        const donutMaterial = new THREE.MeshPhysicalMaterial();
+
+        donutMaterial.metalness = 0;
+        donutMaterial.roughness = 0;
+
+        donutMaterial.transmission = 1;
+        donutMaterial.ior = 1.5;
+        donutMaterial.thickness = 0.5;
+
+        // center the textGeometry
         textGeometry.center();
         textGeometry.computeBoundingBox();
-        console.log(textGeometry.boundingBox);
+
+        // Add geometry rotation controls to debug UI
+        const geometryFolder = gui.addFolder("Text Geometry");
+        
+        const geometryControls = {
+          rotationX: 0,
+          rotationY: 0,
+          rotationZ: 0
+        };
+
+        // Helper function to update geometry rotation
+        const updateGeometryRotation = () => {
+          textGeometry.rotateX(geometryControls.rotationX);
+          textGeometry.rotateY(geometryControls.rotationY);
+          textGeometry.rotateZ(geometryControls.rotationZ);
+          // Need to recenter after rotation
+          textGeometry.center();
+          // Update geometry attributes
+          textGeometry.attributes.position.needsUpdate = true;
+          textGeometry.attributes.normal.needsUpdate = true;
+        };
+
+        geometryFolder
+          .add(geometryControls, "rotationX")
+          .min(-Math.PI / 4)
+          .max(Math.PI / 4)
+          .step(0.01)
+          .name("Rotate X")
+          .onChange(() => {
+            updateGeometryRotation();
+          });
+
+        geometryFolder
+          .add(geometryControls, "rotationY")
+          .min(-Math.PI / 4)
+          .max(Math.PI / 4)
+          .step(0.01)
+          .name("Rotate Y")
+          .onChange(() => {
+            updateGeometryRotation();
+          });
+
+        geometryFolder
+          .add(geometryControls, "rotationZ")
+          .min(-Math.PI / 4)
+          .max(Math.PI / 4)
+          .step(0.01)
+          .name("Rotate Z")
+          .onChange(() => {
+            updateGeometryRotation();
+          });
 
         // create mesh
         const text = new THREE.Mesh(textGeometry, textMaterial);
         scene.add(text);
+
+        // Create donuts
+        const donutGeometry = new THREE.TorusGeometry(
+          0.3,
+          0.2,
+          20,
+          45
+        );
+
+        for (let i = 0; i < 300; i++) {
+          const donut = new THREE.Mesh(donutGeometry, donutMaterial);
+
+          // Random position
+          donut.position.x = (Math.random() - 0.5) * 10;
+          donut.position.y = (Math.random() - 0.5) * 10;
+          donut.position.z = (Math.random() - 0.5) * 10;
+
+          // Random rotation
+          donut.rotation.x = Math.random() * Math.PI;
+          donut.rotation.y = Math.random() * Math.PI;
+
+          // Random scale
+          const scale = Math.random();
+          donut.scale.set(scale, scale, scale);
+
+          scene.add(donut);
+        }
       }
     );
+
+    /* Lighting */
+    // Add ambient light for overall scene illumination
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 10);
+    dirLight.position.set(5, 10, 7.5);
+    scene.add(dirLight);
+
+    // Add point light for highlights and shadows
+    const pointLight = new THREE.PointLight(0xffffff, 100);
+    pointLight.position.set(2, 3, 4);
+    scene.add(pointLight);
+
+    // Add point light helper for debugging
+    const pointLightHelper = new THREE.PointLightHelper(
+      pointLight,
+      0.2
+    );
+    scene.add(pointLightHelper);
+
+    // Add light controls to debug UI
+    const lightFolder = gui.addFolder("Lighting");
+
+    lightFolder
+      .add(dirLight, "intensity")
+      .min(0)
+      .max(100)
+      .step(0.001)
+      .name("Direct Intensity");
+
+    lightFolder
+      .add(ambientLight, "intensity")
+      .min(0)
+      .max(10)
+      .step(0.001)
+      .name("Ambient Intensity");
+
+    lightFolder
+      .add(pointLight, "intensity")
+      .min(0)
+      .max(200)
+      .step(0.1)
+      .name("Point Intensity");
+
+    lightFolder
+      .add(pointLight.position, "x")
+      .min(-5)
+      .max(5)
+      .step(0.1)
+      .name("Point Light X");
+
+    lightFolder
+      .add(pointLight.position, "y")
+      .min(-5)
+      .max(5)
+      .step(0.1)
+      .name("Point Light Y");
+
+    lightFolder
+      .add(pointLight.position, "z")
+      .min(-5)
+      .max(5)
+      .step(0.1)
+      .name("Point Light Z");
 
     // Camera
     const camera = new THREE.PerspectiveCamera(
@@ -137,7 +323,15 @@ export default function ThreeDTextPage() {
     // Renderer
     const renderer = new THREE.WebGLRenderer({
       canvas: canvasRef.current,
+      antialias: true,
     });
+
+    // Enable physically correct lighting
+    renderer.physicallyCorrectLights = true;
+
+    // Configure tone mapping
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1;
     renderer.setSize(sizes.width, sizes.height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
@@ -178,7 +372,8 @@ export default function ThreeDTextPage() {
       window.removeEventListener("resize", onResize);
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
       controls.dispose();
-      material.dispose();
+      textMaterial.dispose();
+      donutMaterial.dispose();
       renderer.dispose();
     };
   }, []);
