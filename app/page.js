@@ -41,6 +41,7 @@ export default function Home() {
           <Link href='/10-textures'>10-textures</Link>
           <Link href='/11-materials'>11-materials</Link>
           <Link href='/12-3d-text'>12-3d-text</Link>
+          <Link href='/13-lights'>13-lights</Link>
         </div>
       </div>
     </main>
