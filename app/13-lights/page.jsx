@@ -103,22 +103,32 @@ export default function ThreeDTextPage() {
 
     // Helpers
 
-    const hemisphereLightHelper = new THREE.HemisphereLightHelper(hemisphereLight, 0.2);
+    const hemisphereLightHelper = new THREE.HemisphereLightHelper(
+      hemisphereLight,
+      0.2
+    );
     // scene.add(hemisphereLightHelper);
 
-    const directionalLightHelper = new THREE.DirectionalLightHelper(directionalLight, 0.2);
+    const directionalLightHelper = new THREE.DirectionalLightHelper(
+      directionalLight,
+      0.2
+    );
     scene.add(directionalLightHelper);
 
-    const pointLightHelper = new THREE.PointLightHelper(pointLight, 0.2);
+    const pointLightHelper = new THREE.PointLightHelper(
+      pointLight,
+      0.2
+    );
     scene.add(pointLightHelper);
 
     const spotLightHelper = new THREE.SpotLightHelper(spotLight, 0.2);
     scene.add(spotLightHelper);
 
-    const rectAreaLightHelper = new RectAreaLightHelper(rectAreaLight, 0.2);
+    const rectAreaLightHelper = new RectAreaLightHelper(
+      rectAreaLight,
+      0.2
+    );
     scene.add(rectAreaLightHelper);
-
-
 
     /**
      * Objects
@@ -176,12 +186,6 @@ export default function ThreeDTextPage() {
       antialias: true,
     });
 
-    // Enable physically correct lighting
-    renderer.physicallyCorrectLights = true;
-
-    // Configure tone mapping
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1;
     renderer.setSize(sizes.width, sizes.height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
@@ -231,8 +235,6 @@ export default function ThreeDTextPage() {
       window.removeEventListener("resize", onResize);
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
       controls.dispose();
-      textMaterial.dispose();
-      donutMaterial.dispose();
       renderer.dispose();
     };
   }, []);
