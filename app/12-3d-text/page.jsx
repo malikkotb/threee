@@ -21,39 +21,39 @@ export default function ThreeDTextPage() {
     const scene = new THREE.Scene();
 
     // Environment map
-    const hdrLoader = new HDRLoader();
-    hdrLoader.load(
-      "/textures/environmentMap/paris.hdr",
-      (environmentMap) => {
-        environmentMap.mapping =
-          THREE.EquirectangularReflectionMapping;
-        scene.environment = environmentMap;
-        scene.background = environmentMap;
+    // const hdrLoader = new HDRLoader();
+    // hdrLoader.load(
+    //   "/textures/environmentMap/paris.hdr",
+    //   (environmentMap) => {
+    //     environmentMap.mapping =
+    //       THREE.EquirectangularReflectionMapping;
+    //     scene.environment = environmentMap;
+    //     scene.background = environmentMap;
 
-        // Add environment map controls to debug UI
-        const envFolder = gui.addFolder("Environment");
+    //     // Add environment map controls to debug UI
+    //     const envFolder = gui.addFolder("Environment");
 
-        // Control for environment map intensity
-        envFolder
-          .add(renderer, "toneMappingExposure")
-          .min(0)
-          .max(5)
-          .step(0.1)
-          .name("Env Intensity");
+    //     // Control for environment map intensity
+    //     envFolder
+    //       .add(renderer, "toneMappingExposure")
+    //       .min(0)
+    //       .max(5)
+    //       .step(0.1)
+    //       .name("Env Intensity");
 
-        // Toggle environment map as background
-        const envConfig = {
-          useAsBackground: true,
-        };
+    //     // Toggle environment map as background
+    //     const envConfig = {
+    //       useAsBackground: true,
+    //     };
 
-        envFolder
-          .add(envConfig, "useAsBackground")
-          .name("Show as Background")
-          .onChange((value) => {
-            scene.background = value ? environmentMap : null;
-          });
-      }
-    );
+    //     envFolder
+    //       .add(envConfig, "useAsBackground")
+    //       .name("Show as Background")
+    //       .onChange((value) => {
+    //         scene.background = value ? environmentMap : null;
+    //       });
+    //   }
+    // );
 
     // Axes helper
     const axesHelper = new THREE.AxesHelper();
@@ -156,11 +156,11 @@ export default function ThreeDTextPage() {
 
         // Add geometry rotation controls to debug UI
         const geometryFolder = gui.addFolder("Text Geometry");
-        
+
         const geometryControls = {
           rotationX: 0,
           rotationY: 0,
-          rotationZ: 0
+          rotationZ: 0,
         };
 
         // Helper function to update geometry rotation
@@ -239,70 +239,74 @@ export default function ThreeDTextPage() {
     );
 
     /* Lighting */
-    // Add ambient light for overall scene illumination
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 10);
-    dirLight.position.set(5, 10, 7.5);
-    scene.add(dirLight);
+    const rectAreaLight = new THREE.RectAreaLight(0x4e00ff, 100, 100, 100); // color, intensity, width, height
+    scene.add(rectAreaLight);
 
-    // Add point light for highlights and shadows
-    const pointLight = new THREE.PointLight(0xffffff, 100);
-    pointLight.position.set(2, 3, 4);
-    scene.add(pointLight);
+    // // Add ambient light for overall scene illumination
+    // const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    // scene.add(ambientLight);
 
-    // Add point light helper for debugging
-    const pointLightHelper = new THREE.PointLightHelper(
-      pointLight,
-      0.2
-    );
-    scene.add(pointLightHelper);
+    // const dirLight = new THREE.DirectionalLight(0xffffff, 10);
+    // dirLight.position.set(5, 10, 7.5);
+    // scene.add(dirLight);
 
-    // Add light controls to debug UI
-    const lightFolder = gui.addFolder("Lighting");
+    // // Add point light for highlights and shadows
+    // const pointLight = new THREE.PointLight(0xffffff, 100);
+    // pointLight.position.set(2, 3, 4);
+    // scene.add(pointLight);
 
-    lightFolder
-      .add(dirLight, "intensity")
-      .min(0)
-      .max(100)
-      .step(0.001)
-      .name("Direct Intensity");
+    // // Add point light helper for debugging
+    // const pointLightHelper = new THREE.PointLightHelper(
+    //   pointLight,
+    //   0.2
+    // );
+    // scene.add(pointLightHelper);
 
-    lightFolder
-      .add(ambientLight, "intensity")
-      .min(0)
-      .max(10)
-      .step(0.001)
-      .name("Ambient Intensity");
+    // // Add light controls to debug UI
+    // const lightFolder = gui.addFolder("Lighting");
 
-    lightFolder
-      .add(pointLight, "intensity")
-      .min(0)
-      .max(200)
-      .step(0.1)
-      .name("Point Intensity");
+    // lightFolder
+    //   .add(dirLight, "intensity")
+    //   .min(0)
+    //   .max(100)
+    //   .step(0.001)
+    //   .name("Direct Intensity");
 
-    lightFolder
-      .add(pointLight.position, "x")
-      .min(-5)
-      .max(5)
-      .step(0.1)
-      .name("Point Light X");
+    // lightFolder
+    //   .add(ambientLight, "intensity")
+    //   .min(0)
+    //   .max(10)
+    //   .step(0.001)
+    //   .name("Ambient Intensity");
 
-    lightFolder
-      .add(pointLight.position, "y")
-      .min(-5)
-      .max(5)
-      .step(0.1)
-      .name("Point Light Y");
+    // lightFolder
+    //   .add(pointLight, "intensity")
+    //   .min(0)
+    //   .max(200)
+    //   .step(0.1)
+    //   .name("Point Intensity");
 
-    lightFolder
-      .add(pointLight.position, "z")
-      .min(-5)
-      .max(5)
-      .step(0.1)
-      .name("Point Light Z");
+    // lightFolder
+    //   .add(pointLight.position, "x")
+    //   .min(-5)
+    //   .max(5)
+    //   .step(0.1)
+    //   .name("Point Light X");
+
+    // lightFolder
+    //   .add(pointLight.position, "y")
+    //   .min(-5)
+    //   .max(5)
+    //   .step(0.1)
+    //   .name("Point Light Y");
+
+    // lightFolder
+    //   .add(pointLight.position, "z")
+    //   .min(-5)
+    //   .max(5)
+    //   .step(0.1)
+    //   .name("Point Light Z");
 
     // Camera
     const camera = new THREE.PerspectiveCamera(
