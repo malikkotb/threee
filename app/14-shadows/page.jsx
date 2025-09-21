@@ -12,6 +12,18 @@ export default function ThreeDTextPage() {
   useEffect(() => {
     if (!canvasRef.current) return;
 
+    /* Textures */
+    const textureLoader = new THREE.TextureLoader();
+    const bakedShadowTexture = textureLoader.load(
+      "/textures/shadows/bakedShadow.jpg"
+    );
+    const simpleShadowTexture = textureLoader.load(
+      "/textures/shadows/simpleShadow.jpg"
+    );
+    // Textures used as map and matcap are supposed to be encoded in sRGB. !!!
+    // In the latest versions of Three.js we need to specify it by setting their colorSpace to THREE.SRGBColorSpace:
+    bakedShadowTexture.colorSpace = THREE.SRGBColorSpace;
+
     // Debug UI
     const gui = new GUI({ width: 260, title: "Debug UI" });
 
@@ -164,6 +176,15 @@ export default function ThreeDTextPage() {
     // scene.add(pointLightCameraHelper);
 
     // Baking Shadows
+    // similar to baking lightmaps
+    // you integrate shadows in textures that we apply on materials
+    // and then add to plane material for example
+    // problem is you cant change position of that shadow later ( they are static)
+
+    // Baking Shadow alternatives
+    // using simpleShadow.jpg as shadow map; it's just a diffuse light/gradient that we'll use to put ona plane below our object
+    // and when our object moves, we'll move the plane with it
+    // and if object goes up, we can reduce the alpha of the shadow texture to make it look like it's going up
 
     /**
      * Materials
@@ -186,6 +207,9 @@ export default function ThreeDTextPage() {
     const plane = new THREE.Mesh(
       new THREE.PlaneGeometry(5, 5),
       material
+      //   new THREE.MeshStandardMaterial({ // for baked shadows
+      //     map: bakedShadowTexture,
+      //   })
     );
     plane.rotation.x = -Math.PI * 0.5;
     plane.position.y = -0.5;
@@ -193,6 +217,21 @@ export default function ThreeDTextPage() {
     plane.receiveShadow = true;
 
     scene.add(sphere, plane);
+
+    // create a plane slightly above the floow with an alphaMap using the simpleSHadow
+    // bc if u put 2 planes at the same place, you get a glitch called z-fighting
+    const sphereShadow = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.5, 1.5),
+      new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        alphaMap: simpleShadowTexture,
+        transparent: true,
+      })
+    );
+    // position right under the sphere, but slightly above the floor
+    sphereShadow.rotation.x = -Math.PI * 0.5;
+    sphereShadow.position.y = plane.position.y + 0.01;
+    scene.add(sphereShadow);
 
     // Camera
     const camera = new THREE.PerspectiveCamera(
@@ -220,7 +259,7 @@ export default function ThreeDTextPage() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     // activate shadow map
-    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.enabled = false; // deactivate if u want to use baking shadoes instead
 
     // set the algorithm to use for the shadow map
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; // set on renderer
@@ -244,6 +283,16 @@ export default function ThreeDTextPage() {
 
     const tick = () => {
       const elapsedTime = clock.getElapsedTime();
+
+      // update sphere
+      sphere.position.x = Math.cos(elapsedTime) * 1.5;
+      sphere.position.z = Math.sin(elapsedTime) * 1.5;
+      sphere.position.y = Math.abs(Math.sin(elapsedTime * 3)); // mathematical way of creating a bouncing effect
+
+      // update sphereShadow
+      sphereShadow.position.x = sphere.position.x;
+      sphereShadow.position.z = sphere.position.z;
+      sphereShadow.material.opacity = 1 - sphere.position.y;
 
       // update controls
       controls.update();
