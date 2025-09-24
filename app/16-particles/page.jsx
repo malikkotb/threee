@@ -5,6 +5,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import GUI from "lil-gui";
 import gsap from "gsap";
 import { Timer } from "three/src/core/Timer.js";
+import { SphereGeometry } from "three/src/geometries/SphereGeometry.js";
 
 export default function Particles() {
   const canvasRef = useRef(null);
@@ -27,6 +28,40 @@ export default function Particles() {
       width: window.innerWidth,
       height: window.innerHeight,
     };
+
+    /* Particles */
+    // Particles can be used to create effects like stars, rain, dust,smoke, fire, etc.
+    // u can have thousands of them with a reasonable frame rate
+    // each particle is composed of a plane (two triagnles) always facing the camera
+    // Creating particles in three.js is like creating a mesh
+    // - a geometry (BufferGeometry)
+    // - a material (PointsMaterial)
+    // - a Points instance (instead of a Mesh)
+
+    // Particles geometry
+    const particlesGeometry = new SphereGeometry(1, 32, 32);
+
+    // Particles material
+    const particlesMaterial = new THREE.PointsMaterial({
+      size: 0.02,
+      sizeAttenuation: true,
+      depthWrite: false,
+    });
+
+    // Points
+    const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+    scene.add(particles);
+    
+
+    /**
+     * Lights
+     */
+    const ambientLight = new THREE.AmbientLight("#ffffff", 0.5);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight("#ffffff", 1);
+    directionalLight.position.set(1, 2, 0);
+    scene.add(directionalLight);
 
     /**
      * Camera
