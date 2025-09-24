@@ -43,6 +43,7 @@ export default function Home() {
           <Link href='/12-3d-text'>12-3d-text</Link>
           <Link href='/13-lights'>13-lights</Link>
           <Link href='/14-shadows'>14-shadows</Link>
+          <Link href='/15-haunted-house'>15-haunted-house</Link>
         </div>
       </div>
     </main>
