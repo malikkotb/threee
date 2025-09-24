@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import GUI from "lil-gui";
 import gsap from "gsap";
+import { Sky } from "three/examples/jsm/objects/Sky.js";
 
 import { Timer } from "three/src/core/Timer.js";
 export default function ThreeDTextPage() {
@@ -415,6 +416,28 @@ export default function ThreeDTextPage() {
     ghost3.shadow.mapSize.width = 256;
     ghost3.shadow.mapSize.height = 256;
     ghost3.shadow.camera.far = 10;
+
+    /*
+     ** Sky **
+     */
+    const sky = new Sky();
+    sky.scale.setScalar(100);
+    scene.add(sky);
+
+    sky.material.uniforms["turbidity"].value = 10;
+    sky.material.uniforms["rayleigh"].value = 3;
+    sky.material.uniforms["mieCoefficient"].value = 0.1;
+    sky.material.uniforms["mieDirectionalG"].value = 0.95;
+    sky.material.uniforms["sunPosition"].value.set(
+      0.3,
+      -0.038,
+      -0.95
+    );
+
+    /*
+     ** Fog **
+     */
+    scene.fog = new THREE.FogExp2("#02343f", 0.1);
 
     // Resize
     const onResize = () => {
