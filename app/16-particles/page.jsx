@@ -53,6 +53,13 @@ export default function Particles() {
       colors[i] = Math.random(); // 0-1 (r,g,b all go from 0 to 1)
     }
 
+    // to have control over each particle, -> we change the attributes in the buffer array
+
+    // the array "positions" in the BufferAttribute is the array that contains the positions of all the particles
+    // we can update each vertex separately in particlesGeometry.attributes.position.array
+    // because that array contains all the positions of all the particles
+    // it is 1-dimenionsal, so we have to go 3 by 3 (so if we want to update the position of the first particle, we have to update the first 3 values in the array)
+
     // Set the position attribute for each particle in the geometry
     // The BufferAttribute takes the positions array and 3 indicates each position uses 3 values (x,y,z)
     // This tells Three.js where to place each particle in 3D space
@@ -152,9 +159,21 @@ export default function Particles() {
       // update all particles at once
       // particles.rotation.y = 0.2 * elapsedTime;
 
-      // Zoom in camera based on elapsed time
-      //   camera.position.x = 5 - (elapsedTime * 0.5);
-      //   camera.position.z = 5 - (elapsedTime * 0.5);
+      // update individual particles
+      for (let i = 0; i < count; i++) {
+        const i3 = i * 3;
+
+        // i3 + 0 is the x coordinate
+        // i3 + 1 is the y coordinate
+        // i3 + 2 is the z coordinate
+        // this is really expensive way of animating it for the GPU
+        // instead of using a Pointsmaterial, we should use a custom shader
+        const x = particlesGeometry.attributes.position.array[i3 + 0];
+        particlesGeometry.attributes.position.array[i3 + 1] =
+          Math.sin(elapsedTime + x);
+      }
+      // need to tell three.js that attributes will update
+      particlesGeometry.attributes.position.needsUpdate = true;
 
       // update controls
       controls.update();
