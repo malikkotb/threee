@@ -5,6 +5,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import GUI from "lil-gui";
 import gsap from "gsap";
 import { Timer } from "three/src/core/Timer.js";
+import { SphereGeometry } from "three/src/geometries/SphereGeometry.js";
 import { BufferGeometry } from "three/src/core/BufferGeometry.js";
 
 export default function Particles() {
@@ -19,9 +20,6 @@ export default function Particles() {
 
     /* Textures */
     const textureLoader = new THREE.TextureLoader();
-    const particleTexture = textureLoader.load(
-      "/textures/particles/2.png"
-    );
 
     // Debug UI
     const gui = new GUI({ width: 260, title: "Debug UI" });
@@ -43,42 +41,25 @@ export default function Particles() {
 
     // Particles geometry
     const particlesGeometry = new BufferGeometry(1, 32, 32);
-    const count = 5000;
+    const count = 500;
 
-    const positions = new Float32Array(count * 3); // x, y, z
-    const colors = new Float32Array(count * 3); // r, g, b
-
+    const positions = new Float32Array(count * 3);
     for (let i = 0; i < count * 3; i++) {
       positions[i] = (Math.random() - 0.5) * 10;
-      colors[i] = Math.random(); // 0-1 (r,g,b all go from 0 to 1)
     }
 
-    // Set the position attribute for each particle in the geometry
-    // The BufferAttribute takes the positions array and 3 indicates each position uses 3 values (x,y,z)
-    // This tells Three.js where to place each particle in 3D space
     particlesGeometry.setAttribute(
       "position",
       new THREE.BufferAttribute(positions, 3)
     );
 
-    particlesGeometry.setAttribute(
-      "color",
-      new THREE.BufferAttribute(colors, 3)
-    );
+    // add images / videos to particles and then use gsap to zoom in on entire canvas on scroll
 
     // Particles material
     const particlesMaterial = new THREE.PointsMaterial({
-      size: 0.1,
+      size: 1,
       sizeAttenuation: true,
       depthWrite: false,
-      // color: "#ff69b4",
-      transparent: true,
-      alphaMap: particleTexture,
-      // alphaTest: 0.001,
-      // depthTest: false,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      vertexColors: true,
     });
 
     // Points
@@ -87,8 +68,6 @@ export default function Particles() {
       particlesMaterial
     );
     scene.add(particles);
-
-    // different colors for each particle
 
     /**
      * Lights
@@ -148,13 +127,6 @@ export default function Particles() {
     const tick = () => {
       timer.update();
       const elapsedTime = timer.getElapsed();
-
-      // update all particles at once
-      // particles.rotation.y = 0.2 * elapsedTime;
-
-      // Zoom in camera based on elapsed time
-      //   camera.position.x = 5 - (elapsedTime * 0.5);
-      //   camera.position.z = 5 - (elapsedTime * 0.5);
 
       // update controls
       controls.update();
