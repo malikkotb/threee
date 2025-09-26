@@ -5,6 +5,7 @@ import Lenis from "lenis";
 import { useEffect } from "react";
 import DisplacementMap from "./11-materials/displacementMap";
 import BulgeDistortionAnimation from "./11-materials/BulgeDistortionAnimation";
+import ImageZoomScrollAnimation from "./16-particles/ImageZoomScrollAnimation";
 
 export default function Home() {
   useEffect(() => {
@@ -25,6 +26,7 @@ export default function Home() {
       {/* <CubeInteraction /> */}
       {/* <BulgeDistortionAnimation /> */}
       {/* <DisplacementMap /> */}
+      <ImageZoomScrollAnimation />
       <div className='flex flex-col items-center justify-center h-screen'>
         <h1 className='text-4xl font-bold'>Three.js</h1>
         <div className='flex flex-col items-center justify-center'>
