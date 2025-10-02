@@ -47,6 +47,7 @@ export default function Home() {
           <Link href='/14-shadows'>14-shadows</Link>
           <Link href='/15-haunted-house'>15-haunted-house</Link>
           <Link href='/16-particles'>16-particles</Link>
+          <Link href='/17-galaxy-generator'>17-galaxy-generator</Link>
         </div>
       </div>
     </main>
