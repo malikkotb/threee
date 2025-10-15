@@ -48,6 +48,9 @@ export default function Home() {
           <Link href='/15-haunted-house'>15-haunted-house</Link>
           <Link href='/16-particles'>16-particles</Link>
           <Link href='/17-galaxy-generator'>17-galaxy-generator</Link>
+          <Link href='/18-scroll-animations'>
+            18-scroll-animations
+          </Link>
         </div>
       </div>
     </main>
