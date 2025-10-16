@@ -87,6 +87,11 @@ export default function ScrollAnimations() {
     /**
      * Camera
      */
+
+    // Group
+    const cameraGroup = new THREE.Group();
+    scene.add(cameraGroup);
+
     // Base camera
     const camera = new THREE.PerspectiveCamera(
       35,
@@ -95,7 +100,7 @@ export default function ScrollAnimations() {
       100
     );
     camera.position.z = 6;
-    scene.add(camera);
+    cameraGroup.add(camera);
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({
@@ -126,17 +131,47 @@ export default function ScrollAnimations() {
       scrollY = window.scrollY;
     });
 
+    /* Parallax */
+    // action of seeing one object through differnt observation points
+    // we're going to apply a parallax effect by making the camera move horizontally and vertically
+    // according to the mouse position
+
+    /* Cursor */
+    const cursor = {
+      x: 0,
+      y: 0,
+    };
+    window.addEventListener("mousemove", (event) => {
+      cursor.x = event.clientX / sizes.width - 0.5;
+      cursor.y = event.clientY / sizes.height - 0.5;
+    });
+
     // Animate
-    const timer = new Timer();
     let animationFrameId;
 
+    const clock = new THREE.Clock();
+    let previousTime = 0;
+
     const tick = () => {
-      timer.update();
-      const elapsedTime = timer.getElapsed();
+      const elapsedTime = clock.getElapsedTime();
+      const deltaTime = elapsedTime - previousTime;
+      previousTime = elapsedTime;
 
       // animate camera
       // update the camera pos based on the scrollY
       camera.position.y = -(scrollY / sizes.height) * objectsDistance;
+
+      const parallaxX = cursor.x * 0.5; // lower amplitude by multiplying by 0.5
+      const parallaxY = -cursor.y * 0.5;
+
+      // instead of applying the parallax on the camera, apply it on the cameraGroup
+      // this works becuase the camera is moving inside the Group.
+
+      // this adds a smooth transition to the cameraGroup position (EASING)
+      cameraGroup.position.x +=
+        (parallaxX - cameraGroup.position.x) * 5 * deltaTime;
+      cameraGroup.position.y +=
+        (parallaxY - cameraGroup.position.y) * 5 * deltaTime;
 
       // Animate meshes
       for (const mesh of sectionMeshes) {
