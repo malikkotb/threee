@@ -5,7 +5,6 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import GUI from "lil-gui";
 import gsap from "gsap";
 import { Timer } from "three/src/core/Timer.js";
-import { SphereGeometry } from "three/src/geometries/SphereGeometry.js";
 import { BufferGeometry } from "three/src/core/BufferGeometry.js";
 
 export default function Particles() {
@@ -21,23 +20,35 @@ export default function Particles() {
     /* Textures */
     // Image textures
     const textureLoader = new THREE.TextureLoader();
-    const particleTexture1 = textureLoader.load("/textures/image1.png");
-    const particleTexture2 = textureLoader.load("/textures/image2.png");
-    const particleTexture3 = textureLoader.load("/textures/image3.png");
-    const particleTexture4 = textureLoader.load("/textures/image4.png");
-    const particleTexture5 = textureLoader.load("/textures/image5.png");
-    const particleTexture6 = textureLoader.load("/textures/image6.png");
+    const particleTexture1 = textureLoader.load(
+      "/textures/image1.png"
+    );
+    const particleTexture2 = textureLoader.load(
+      "/textures/image2.png"
+    );
+    const particleTexture3 = textureLoader.load(
+      "/textures/image3.png"
+    );
+    const particleTexture4 = textureLoader.load(
+      "/textures/image4.png"
+    );
+    const particleTexture5 = textureLoader.load(
+      "/textures/image5.png"
+    );
+    const particleTexture6 = textureLoader.load(
+      "/textures/image6.png"
+    );
 
     // Video textures
     const createVideoTexture = (videoPath) => {
-      const video = document.createElement('video');
+      const video = document.createElement("video");
       video.src = videoPath;
       video.loop = true;
       video.muted = true;
       video.playsInline = true;
       video.autoplay = true;
       video.play();
-      
+
       const texture = new THREE.VideoTexture(video);
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;
@@ -45,11 +56,21 @@ export default function Particles() {
       return texture;
     };
 
-    const videoTexture1 = createVideoTexture("/textures/videos/video1.mov");
-    const videoTexture2 = createVideoTexture("/textures/videos/video2.mov");
-    const videoTexture3 = createVideoTexture("/textures/videos/video3.mov");
-    const videoTexture4 = createVideoTexture("/textures/videos/video4.mov");
-    const videoTexture5 = createVideoTexture("/textures/videos/video5.mov");
+    const videoTexture1 = createVideoTexture(
+      "/textures/videos/video1.mov"
+    );
+    const videoTexture2 = createVideoTexture(
+      "/textures/videos/video2.mov"
+    );
+    const videoTexture3 = createVideoTexture(
+      "/textures/videos/video3.mov"
+    );
+    const videoTexture4 = createVideoTexture(
+      "/textures/videos/video4.mov"
+    );
+    const videoTexture5 = createVideoTexture(
+      "/textures/videos/video5.mov"
+    );
 
     // Debug UI
     const gui = new GUI({ width: 260, title: "Debug UI" });
@@ -129,7 +150,7 @@ export default function Particles() {
 
     // Custom shader material for multiple textures
     const particlesMaterial = new THREE.ShaderMaterial({
-    //   transparent: true,
+      //   transparent: true,
       depthWrite: false,
       uniforms: {
         size: { value: 20.0 },
@@ -228,7 +249,7 @@ export default function Particles() {
     );
     camera.position.x = 4;
     camera.position.y = 2;
-    camera.position.z = 5;
+    camera.position.z = 100;
     scene.add(camera);
 
     // Controls
@@ -285,7 +306,7 @@ export default function Particles() {
       renderer.dispose();
 
       // Cleanup video elements
-      textures.forEach(texture => {
+      textures.forEach((texture) => {
         if (texture instanceof THREE.VideoTexture) {
           const video = texture.source.data;
           video.pause();

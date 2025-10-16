@@ -69,6 +69,10 @@ export default function ScrollAnimations() {
     mesh2.position.y = -objectsDistance * 1;
     mesh3.position.y = -objectsDistance * 2;
 
+    mesh1.position.x = 2;
+    mesh2.position.x = -2;
+    mesh3.position.x = 2;
+
     scene.add(mesh1, mesh2, mesh3);
 
     const sectionMeshes = [mesh1, mesh2, mesh3];
@@ -116,6 +120,12 @@ export default function ScrollAnimations() {
     };
     window.addEventListener("resize", onResize);
 
+    /* Scroll */
+    let scrollY = window.scrollY;
+    window.addEventListener("scroll", () => {
+      scrollY = window.scrollY;
+    });
+
     // Animate
     const timer = new Timer();
     let animationFrameId;
@@ -123,6 +133,10 @@ export default function ScrollAnimations() {
     const tick = () => {
       timer.update();
       const elapsedTime = timer.getElapsed();
+
+      // animate camera
+      // update the camera pos based on the scrollY
+      camera.position.y = -(scrollY / sizes.height) * objectsDistance;
 
       // Animate meshes
       for (const mesh of sectionMeshes) {
