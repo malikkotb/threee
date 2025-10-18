@@ -6,27 +6,15 @@ import { useEffect } from "react";
 import DisplacementMap from "./11-materials/displacementMap";
 import BulgeDistortionAnimation from "./11-materials/BulgeDistortionAnimation";
 import ImageZoomScrollAnimation from "./16-particles/ImageZoomScrollAnimation";
-
+import ParticleDistorter from "./19-physics/ParticleDistorter";
 export default function Home() {
-  useEffect(() => {
-    // Initialize Lenis
-    const lenis = new Lenis();
-
-    // Use requestAnimationFrame to continuously update the scroll
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-
-    requestAnimationFrame(raf);
-  }, []);
-
   return (
     <main>
       {/* <CubeInteraction /> */}
       {/* <BulgeDistortionAnimation /> */}
       {/* <DisplacementMap /> */}
-      <ImageZoomScrollAnimation />
+      {/* <ImageZoomScrollAnimation /> */}
+      <ParticleDistorter />
       <div className='flex flex-col items-center justify-center h-screen'>
         <h1 className='text-4xl font-bold'>Three.js</h1>
         <div className='flex flex-col items-center justify-center'>
@@ -51,6 +39,7 @@ export default function Home() {
           <Link href='/18-scroll-animations'>
             18-scroll-animations
           </Link>
+          <Link href='/19-physics'>19-physics</Link>
         </div>
       </div>
     </main>
