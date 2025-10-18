@@ -39,6 +39,29 @@ export default function ParticleDistorter() {
     parameters.insideColor = "#ff6030";
     parameters.outsideColor = "#1b3984";
 
+    // Hover effect parameters
+    parameters.hoverStrength = 0.8; // Increased for better visibility with smooth falloff
+
+    // Setup for mouse interaction
+    const mouse = new THREE.Vector2();
+    const mouseWorldPos = new THREE.Vector3();
+    const raycaster = new THREE.Raycaster();
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // XZ plane at y=0
+
+    // Track mouse position
+    const onMouseMove = (event) => {
+      // Get mouse position in normalized device coordinates (-1 to +1)
+      mouse.x = (event.clientX / sizes.width) * 2 - 1;
+      mouse.y = -((event.clientY / sizes.height) * 2 - 1);
+
+      // Update the raycaster
+      raycaster.setFromCamera(mouse, camera);
+
+      // Calculate the point where the ray intersects the plane
+      raycaster.ray.intersectPlane(plane, mouseWorldPos);
+    };
+    window.addEventListener("mousemove", onMouseMove);
+
     let geometry = null;
     let material = null;
     let points = null;
@@ -55,6 +78,9 @@ export default function ParticleDistorter() {
       // Geometry
       geometry = new THREE.BufferGeometry();
       const positions = new Float32Array(parameters.count * 3); // x, y, z
+      const originalPositions = new Float32Array(
+        parameters.count * 3
+      ); // Store original positions
       const colors = new Float32Array(parameters.count * 3); // r, g, b
 
       const insideColor = new THREE.Color(parameters.insideColor);
@@ -82,11 +108,20 @@ export default function ParticleDistorter() {
           Math.pow(Math.random(), parameters.randomnessPower) *
           (Math.random() < 0.5 ? 1 : -1);
 
-        positions[i3 + 0] =
-          Math.cos(branchAngle + spinAngle) * radius + randomX; // x
-        positions[i3 + 1] = 0 + randomY; // y
-        positions[i3 + 2] =
-          Math.sin(branchAngle + spinAngle) * radius + randomZ; // z
+        const x =
+          Math.cos(branchAngle + spinAngle) * radius + randomX;
+        const y = 0 + randomY;
+        const z =
+          Math.sin(branchAngle + spinAngle) * radius + randomZ;
+
+        positions[i3 + 0] = x;
+        positions[i3 + 1] = y;
+        positions[i3 + 2] = z;
+
+        // Store original positions
+        originalPositions[i3 + 0] = x;
+        originalPositions[i3 + 1] = y;
+        originalPositions[i3 + 2] = z;
 
         // Color
         const mixedColor = insideColor.clone();
@@ -105,6 +140,12 @@ export default function ParticleDistorter() {
       geometry.setAttribute(
         "color",
         new THREE.BufferAttribute(colors, 3)
+      );
+
+      // Store original positions as a separate attribute
+      geometry.setAttribute(
+        "originalPosition",
+        new THREE.BufferAttribute(originalPositions, 3)
       );
 
       // Material
@@ -194,6 +235,15 @@ export default function ParticleDistorter() {
       generateGalaxy();
     });
 
+    // Hover effect controls
+    const hoverFolder = gui.addFolder("Hover Effect");
+    hoverFolder
+      .add(parameters, "hoverStrength")
+      .min(0)
+      .max(2)
+      .step(0.1)
+      .name("Effect Strength");
+
     // Sizes
     const sizes = {
       width: window.innerWidth,
@@ -220,9 +270,12 @@ export default function ParticleDistorter() {
       0.1,
       100
     );
-    camera.position.x = 4;
-    camera.position.y = 2;
-    camera.position.z = 5;
+    camera.position.x = 0;
+    camera.position.y = 6;
+    camera.position.z = 0;
+
+    // Rotate camera to look down at the galaxy
+    camera.rotation.x = -Math.PI / 2; // Rotate -90 degrees around X axis to point downward
     scene.add(camera);
 
     // Controls
@@ -259,8 +312,34 @@ export default function ParticleDistorter() {
       timer.update();
       const elapsedTime = timer.getElapsed();
 
-      // update controls
-      controls.update();
+      // Update particle positions based on mouse hover
+      const positions = points.geometry.attributes.position.array;
+      const originalPositions =
+        points.geometry.attributes.originalPosition.array;
+
+      for (let i = 0; i < parameters.count; i++) {
+        const i3 = i * 3;
+
+        // Get the distance between particle and mouse
+        const particleX = originalPositions[i3];
+        const particleZ = originalPositions[i3 + 2];
+        const dx = particleX - mouseWorldPos.x;
+        const dz = particleZ - mouseWorldPos.z;
+        const distance = Math.sqrt(dx * dx + dz * dz);
+
+        // Calculate smooth falloff based on distance
+        const falloff = Math.exp(-distance * distance * 2); // Gaussian falloff
+        const factor = falloff * parameters.hoverStrength;
+
+        // Apply smooth movement
+        positions[i3] =
+          particleX + (mouseWorldPos.x - particleX) * factor;
+        positions[i3 + 1] = originalPositions[i3 + 1]; // Keep Y position
+        positions[i3 + 2] =
+          particleZ + (mouseWorldPos.z - particleZ) * factor;
+      }
+
+      points.geometry.attributes.position.needsUpdate = true;
 
       // Render
       renderer.render(scene, camera);
@@ -274,6 +353,7 @@ export default function ParticleDistorter() {
     // Cleanup
     return () => {
       window.removeEventListener("resize", onResize);
+      window.removeEventListener("mousemove", onMouseMove);
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
       controls.dispose();
       renderer.dispose();
