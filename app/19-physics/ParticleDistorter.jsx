@@ -41,6 +41,8 @@ export default function ParticleDistorter() {
 
     // Hover effect parameters
     parameters.hoverStrength = 0.8; // Increased for better visibility with smooth falloff
+    parameters.returnSpeed = 0.1; // Speed at which particles return
+    parameters.dampening = 0.85; // Dampening factor for smooth motion
 
     // Setup for mouse interaction
     const mouse = new THREE.Vector2();
@@ -81,6 +83,7 @@ export default function ParticleDistorter() {
       const originalPositions = new Float32Array(
         parameters.count * 3
       ); // Store original positions
+      const velocities = new Float32Array(parameters.count * 3); // Store velocities
       const colors = new Float32Array(parameters.count * 3); // r, g, b
 
       const insideColor = new THREE.Color(parameters.insideColor);
@@ -142,10 +145,14 @@ export default function ParticleDistorter() {
         new THREE.BufferAttribute(colors, 3)
       );
 
-      // Store original positions as a separate attribute
+      // Store original positions and velocities as separate attributes
       geometry.setAttribute(
         "originalPosition",
         new THREE.BufferAttribute(originalPositions, 3)
+      );
+      geometry.setAttribute(
+        "velocity",
+        new THREE.BufferAttribute(velocities, 3)
       );
 
       // Material
@@ -243,6 +250,18 @@ export default function ParticleDistorter() {
       .max(2)
       .step(0.1)
       .name("Effect Strength");
+    hoverFolder
+      .add(parameters, "returnSpeed")
+      .min(0.01)
+      .max(0.5)
+      .step(0.01)
+      .name("Return Speed");
+    hoverFolder
+      .add(parameters, "dampening")
+      .min(0.5)
+      .max(0.99)
+      .step(0.01)
+      .name("Smoothness");
 
     // Sizes
     const sizes = {
@@ -312,34 +331,49 @@ export default function ParticleDistorter() {
       timer.update();
       const elapsedTime = timer.getElapsed();
 
-      // Update particle positions based on mouse hover
-      const positions = points.geometry.attributes.position.array;
-      const originalPositions =
-        points.geometry.attributes.originalPosition.array;
+        // Update particle positions based on mouse hover and spring motion
+        const positions = points.geometry.attributes.position.array;
+        const originalPositions = points.geometry.attributes.originalPosition.array;
+        const velocities = points.geometry.attributes.velocity.array;
 
-      for (let i = 0; i < parameters.count; i++) {
-        const i3 = i * 3;
+        for (let i = 0; i < parameters.count; i++) {
+          const i3 = i * 3;
 
-        // Get the distance between particle and mouse
-        const particleX = originalPositions[i3];
-        const particleZ = originalPositions[i3 + 2];
-        const dx = particleX - mouseWorldPos.x;
-        const dz = particleZ - mouseWorldPos.z;
-        const distance = Math.sqrt(dx * dx + dz * dz);
+          // Get the distance between particle and mouse
+          const particleX = positions[i3];
+          const particleZ = positions[i3 + 2];
+          const dx = particleX - mouseWorldPos.x;
+          const dz = particleZ - mouseWorldPos.z;
+          const distance = Math.sqrt(dx * dx + dz * dz);
 
-        // Calculate smooth falloff based on distance
-        const falloff = Math.exp(-distance * distance * 2); // Gaussian falloff
-        const factor = falloff * parameters.hoverStrength;
+          // Calculate smooth falloff based on distance
+          const falloff = Math.exp(-distance * distance * 2); // Gaussian falloff
+          const factor = falloff * parameters.hoverStrength;
 
-        // Apply smooth movement
-        positions[i3] =
-          particleX + (mouseWorldPos.x - particleX) * factor;
-        positions[i3 + 1] = originalPositions[i3 + 1]; // Keep Y position
-        positions[i3 + 2] =
-          particleZ + (mouseWorldPos.z - particleZ) * factor;
-      }
+          // Calculate target position (where the particle wants to go)
+          const targetX = factor > 0.01 
+            ? originalPositions[i3] + (mouseWorldPos.x - originalPositions[i3]) * factor 
+            : originalPositions[i3];
+          const targetZ = factor > 0.01
+            ? originalPositions[i3 + 2] + (mouseWorldPos.z - originalPositions[i3 + 2]) * factor
+            : originalPositions[i3 + 2];
 
-      points.geometry.attributes.position.needsUpdate = true;
+          // Calculate spring force
+          const springX = (targetX - positions[i3]) * parameters.returnSpeed;
+          const springZ = (targetZ - positions[i3 + 2]) * parameters.returnSpeed;
+
+          // Update velocities with spring force
+          velocities[i3] = velocities[i3] * parameters.dampening + springX;
+          velocities[i3 + 2] = velocities[i3 + 2] * parameters.dampening + springZ;
+
+          // Update positions using velocities
+          positions[i3] += velocities[i3];
+          positions[i3 + 1] = originalPositions[i3 + 1]; // Keep Y position
+          positions[i3 + 2] += velocities[i3 + 2];
+        }
+
+        points.geometry.attributes.position.needsUpdate = true;
+        points.geometry.attributes.velocity.needsUpdate = true;
 
       // Render
       renderer.render(scene, camera);
